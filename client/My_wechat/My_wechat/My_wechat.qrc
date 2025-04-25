@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/">
+        <file>style/stylesheet.qss</file>
+        <file>res/Max_.png</file>
+        <file>res/Min_.png</file>
+        <file>res/Close_.png</file>
+        <file>res/Restore_.png</file>
+        <file>res/telegram.ico</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,60 @@
+# ========== 通用忽略 ==========
+*.d
+*.slo
+*.lo
+*.o
+*.obj
+*.gch
+*.pch
+*.so
+*.dylib
+*.dll
+*.mod
+*.smod
+*.lai
+*.la
+*.a
+*.lib
+*.exe
+*.out
+*.app
+
+# ========== Visual Studio ==========
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+ipch/
+*.VC.db
+*.VC.opendb
+
+# ========== 构建输出目录 ==========
+x64/
+x86/
+Debug/
+Release/
+*.log
+*.tlog
+*.lastbuildstate
+*.ilk
+*.idb
+*.pdb
+
+# ========== Qt 项目 ==========
+*.pro.user
+*.qmake.stash
+*.autosave
+*.moc
+*.qmlc
+*.jsc
+*.rcc
+Makefile*
+
+# ========== 保留源文件 ==========
+!*/.gitkeep
+!*.cpp
+!*.h
+!*.hpp
+!*.ui
+!*.pro

@@ -1,0 +1,12 @@
+{
+    "email": {
+      "user": "evan_yutang@163.com",
+      "pass": "FXkPFbLtP4UXj7xc"
+    },
+    "redis": {
+      "host": "127.0.0.1",
+      "port": 6380,
+      "password": "123456"
+    },
+    "code_expire": 180
+} 
