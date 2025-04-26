@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -136,6 +136,10 @@
     <ClCompile Include="AsioIOServerPool.cpp" />
     <ClCompile Include="ConfigMgr.cpp" />
     <ClCompile Include="CServer.cpp" />
+    <ClCompile Include="db\DBConnectionPool.cpp" />
+    <ClCompile Include="db\MySQLConnectionPool.cpp" />
+    <ClCompile Include="db\UserDAO.cpp" />
+    <ClCompile Include="db\UserManager.cpp" />
     <ClCompile Include="GateServer.cpp" />
     <ClCompile Include="HttpConnection.cpp" />
     <ClCompile Include="LogicSystem.cpp" />
@@ -150,6 +154,11 @@
     <ClInclude Include="ConfigMgr.h" />
     <ClInclude Include="const.h" />
     <ClInclude Include="CServer.h" />
+    <ClInclude Include="db\BaseDAO.h" />
+    <ClInclude Include="db\DBConnectionPool.h" />
+    <ClInclude Include="db\MySQLConnectionPool.h" />
+    <ClInclude Include="db\UserDAO.h" />
+    <ClInclude Include="db\UserManager.h" />
     <ClInclude Include="HttpConnection.h" />
     <ClInclude Include="LogicSystem.h" />
     <ClInclude Include="message.grpc.pb.h" />

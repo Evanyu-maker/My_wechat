@@ -1,9 +1,16 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35919.96 d17.13
+VisualStudioVersion = 17.13.35919.96
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "My_wechat", "My_wechat\My_wechat.vcxproj", "{A6FA1BE4-1B7E-4147-BCEB-A117E3A7EE6A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "解决方案项", "解决方案项", "{9FA3D6BD-1EC1-3BA5-80CB-CE02773A58D5}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\server\GateServer\GateServer.sln = ..\..\server\GateServer\GateServer.sln
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GateServer", "..\..\server\GateServer\GateServer.vcxproj", "{C8A49A97-A734-4D3A-9D13-F7838DA14AE6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +22,10 @@ Global
 		{A6FA1BE4-1B7E-4147-BCEB-A117E3A7EE6A}.Debug|x64.Build.0 = Debug|x64
 		{A6FA1BE4-1B7E-4147-BCEB-A117E3A7EE6A}.Release|x64.ActiveCfg = Release|x64
 		{A6FA1BE4-1B7E-4147-BCEB-A117E3A7EE6A}.Release|x64.Build.0 = Release|x64
+		{C8A49A97-A734-4D3A-9D13-F7838DA14AE6}.Debug|x64.ActiveCfg = Debug|x64
+		{C8A49A97-A734-4D3A-9D13-F7838DA14AE6}.Debug|x64.Build.0 = Debug|x64
+		{C8A49A97-A734-4D3A-9D13-F7838DA14AE6}.Release|x64.ActiveCfg = Release|x64
+		{C8A49A97-A734-4D3A-9D13-F7838DA14AE6}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
