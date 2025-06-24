@@ -105,9 +105,11 @@
     <ClCompile Include="AppController.cpp" />
     <ClCompile Include="ChatBubble.cpp" />
     <ClCompile Include="ContactItem.cpp" />
+    <ClCompile Include="ElideLabel.cpp" />
     <ClCompile Include="global.cpp" />
     <ClCompile Include="HttpMgr.cpp" />
     <ClCompile Include="RegisterDialog.cpp" />
+    <ClCompile Include="UserManager.cpp" />
     <QtRcc Include="My_wechat.qrc" />
     <QtUic Include="LoginDialog.ui" />
     <QtUic Include="My_wechat.ui" />
@@ -126,10 +128,12 @@
     <QtMoc Include="ContactItem.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="ElideLabel.h" />
     <ClInclude Include="global.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="resource1.h" />
     <ClInclude Include="Singleton.h" />
+    <ClInclude Include="UserManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="My_wechat.rc" />

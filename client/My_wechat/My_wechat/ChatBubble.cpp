@@ -12,7 +12,7 @@ ChatBubble::ChatBubble(const QString &text, BubbleType type, QWidget *parent)
     // 创建消息标签
     messageLabel = new QLabel(text);
     messageLabel->setWordWrap(true);
-    messageLabel->setMaximumWidth(400);
+    messageLabel->setMaximumWidth(500);
     messageLabel->setMinimumHeight(30);
     messageLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
     
@@ -20,11 +20,14 @@ ChatBubble::ChatBubble(const QString &text, BubbleType type, QWidget *parent)
     if (type == Sent) {
         messageLabel->setStyleSheet(
             "QLabel {"
-            "  background-color: #95EC69;"
-            "  border-radius: 10px;"
-            "  padding: 10px;"
+            "  background-color: #E3F2FD;"
+            "  color: #000000;"
+            "  border-radius: 18px;"
+            "  border-bottom-right-radius: 4px;"
+            "  padding: 12px;"
             "  margin-right: 5px;"
             "  font-size: 14px;"
+            "  font-family: 'Segoe UI', Arial;"
             "}"
         );
         bubbleLayout->addStretch();
@@ -33,10 +36,14 @@ ChatBubble::ChatBubble(const QString &text, BubbleType type, QWidget *parent)
         messageLabel->setStyleSheet(
             "QLabel {"
             "  background-color: #FFFFFF;"
-            "  border-radius: 10px;"
-            "  padding: 10px;"
+            "  color: #000000;"
+            "  border-radius: 18px;"
+            "  border-bottom-left-radius: 4px;"
+            "  padding: 12px;"
             "  margin-left: 5px;"
             "  font-size: 14px;"
+            "  font-family: 'Segoe UI', Arial;"
+            "  box-shadow: 0 1px 2px rgba(0,0,0,0.1);"
             "}"
         );
         bubbleLayout->addWidget(messageLabel);
@@ -44,16 +51,18 @@ ChatBubble::ChatBubble(const QString &text, BubbleType type, QWidget *parent)
     }
     
     // 创建时间标签
-    timeLabel = new QLabel(QDateTime::currentDateTime().toString("hh:mm"));
-    timeLabel->setStyleSheet("color: #8C8C8C; font-size: 12px;");
+    timeLabel = new QLabel(QDateTime::currentDateTime().toString("HH:mm"));
+    timeLabel->setStyleSheet("color: #8C8C8C; font-size: 11px; margin-top: -2px;");
     
     QHBoxLayout *timeLayout = new QHBoxLayout();
     if (type == Sent) {
         timeLayout->addStretch();
         timeLayout->addWidget(timeLabel);
+        timeLayout->setContentsMargins(0, 0, 15, 0);
     } else {
         timeLayout->addWidget(timeLabel);
         timeLayout->addStretch();
+        timeLayout->setContentsMargins(15, 0, 0, 0);
     }
     
     mainLayout->addLayout(bubbleLayout);

@@ -1,5 +1,6 @@
 #pragma once
 #include "DBConnectionPool.h"
+#include "DBManager.h"
 #include <memory>
 #include <string>
 #include <stdexcept>
@@ -79,7 +80,7 @@ class BaseDAO {
 protected:
     // 获取数据库连接
     std::shared_ptr<ConnectionWrapper> getConnection() {
-        return DBConnectionPool::GetInstance()->getConnection();
+        return gDBManager.getConnection();
     }
     
     // 调用存储过程 - 无参数版本

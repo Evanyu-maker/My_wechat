@@ -1,7 +1,18 @@
 #pragma once
-#include "../Singleton.h"
 #include "../const.h"
 #include <mysql/jdbc.h>
+#include <memory>
+#include <mutex>
+#include <iostream>
+#include <atomic>
+#include <vector>
+#include <queue>
+#include <unordered_set>
+#include <thread>
+#include <chrono>
+#include <functional>
+#include <algorithm>
+
 // 连接包装类
 class ConnectionWrapper {
 public:
@@ -89,9 +100,12 @@ struct DBPoolConfig {
 };
 
 // 数据库连接池类
-class DBConnectionPool : public Singleton<DBConnectionPool> {
-    friend class Singleton<DBConnectionPool>;
+class DBConnectionPool {
 public:
+    // 构造函数
+    DBConnectionPool() = default;
+    ~DBConnectionPool();
+    
     // 初始化连接池
     bool init(const DBPoolConfig& config);
     
@@ -130,9 +144,6 @@ public:
     }
     
 private:
-    DBConnectionPool() = default;
-    ~DBConnectionPool();
-    
     // 创建新连接
     ConnectionWrapper* createConnection();
     

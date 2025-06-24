@@ -46,29 +46,34 @@ bool RedisMgr::Get(const std::string& key, std::string& value)
     return true;
 }
 bool RedisMgr::Set(const std::string& key, const std::string& value) {
-    //执行redis命令行
+    auto connect = _con_pool->getConnection();
+    if (connect == nullptr) {
+        return false;
+    }
 
-    this->_reply = (redisReply*)redisCommand(this->_connect, "SET %s %s", key.c_str(), value.c_str());
+    auto reply = (redisReply*)redisCommand(connect, "SET %s %s", key.c_str(), value.c_str());
 
     //如果返回NULL则说明执行失败
-    if (NULL == this->_reply)
+    if (NULL == reply)
     {
         std::cout << "Execut command [ SET " << key << "  " << value << " ] failure ! " << std::endl;
-        freeReplyObject(this->_reply);
+        _con_pool->returnConnection(connect);
         return false;
     }
 
     //如果执行失败则释放连接
-    if (!(this->_reply->type == REDIS_REPLY_STATUS && (strcmp(this->_reply->str, "OK") == 0 || strcmp(this->_reply->str, "ok") == 0)))
+    if (!(reply->type == REDIS_REPLY_STATUS && (strcmp(reply->str, "OK") == 0 || strcmp(reply->str, "ok") == 0)))
     {
         std::cout << "Execut command [ SET " << key << "  " << value << " ] failure ! " << std::endl;
-        freeReplyObject(this->_reply);
+        freeReplyObject(reply);
+        _con_pool->returnConnection(connect);
         return false;
     }
 
     //执行成功 释放redisCommand执行后返回的redisReply所占用的内存
-    freeReplyObject(this->_reply);
+    freeReplyObject(reply);
     std::cout << "Execut command [ SET " << key << "  " << value << " ] success ! " << std::endl;
+    _con_pool->returnConnection(connect);
     return true;
 }
 
@@ -220,14 +225,21 @@ std::string RedisMgr::HGet(const std::string& key, const std::string& hkey)
 
 bool RedisMgr::Del(const std::string& key)
 {
-    this->_reply = (redisReply*)redisCommand(this->_connect, "DEL %s", key.c_str());
-    if (this->_reply == nullptr || this->_reply->type != REDIS_REPLY_INTEGER) {
+    auto connect = _con_pool->getConnection();
+    if (connect == nullptr) {
+        return false;
+    }
+    
+    auto reply = (redisReply*)redisCommand(connect, "DEL %s", key.c_str());
+    if (reply == nullptr || reply->type != REDIS_REPLY_INTEGER) {
         std::cout << "Execut command [ Del " << key << " ] failure ! " << std::endl;
-        freeReplyObject(this->_reply);
+        freeReplyObject(reply);
+        _con_pool->returnConnection(connect);
         return false;
     }
     std::cout << "Execut command [ Del " << key << " ] success ! " << std::endl;
-    freeReplyObject(this->_reply);
+    freeReplyObject(reply);
+    _con_pool->returnConnection(connect);
     return true;
 }
 

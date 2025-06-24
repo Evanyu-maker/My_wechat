@@ -136,7 +136,7 @@ RegisterDialog::RegisterDialog(QWidget *parent)
 	QHBoxLayout* verifyCodeLayout = new QHBoxLayout();
 	
 	// 验证码输入框
-	QtMaterialTextField* verifyCodeField = new QtMaterialTextField(card);
+	verifyCodeField = new QtMaterialTextField(card);
 	verifyCodeField->setLabel("验证码");
 	verifyCodeField->setPlaceholderText("请输入验证码");
 	verifyCodeField->setTextColor(QColor(34, 34, 34));
@@ -288,7 +288,10 @@ RegisterDialog::RegisterDialog(QWidget *parent)
 	connect(confirmPasswordField, &QtMaterialTextField::returnPressed, [this]() {
 		emailField->setFocus();
 	});
-	connect(emailField, &QtMaterialTextField::returnPressed, this, &RegisterDialog::registerAccount);
+	connect(emailField, &QtMaterialTextField::returnPressed, [this]() {
+		verifyCodeField->setFocus();
+	});
+	connect(verifyCodeField, &QtMaterialTextField::returnPressed, this, &RegisterDialog::registerAccount);
 	
 	// 连接HttpMgr的信号
 	connect(HttpMgr::GetInstance().get(), &HttpMgr::requestFinished,
@@ -306,6 +309,12 @@ RegisterDialog::RegisterDialog(QWidget *parent)
 								break;
 							case ErrorCodes::InvalidParams:
 								errorMsg = "输入参数无效";
+								break;
+							case ErrorCodes::ServerError:
+								errorMsg = "服务器错误";
+								break;
+							case ErrorCodes::TokenInvalid:
+								errorMsg = "验证码无效或已过期";
 								break;
 							default:
 								errorMsg = "注册失败: " + QString::number(static_cast<int>(error));
@@ -326,7 +335,7 @@ RegisterDialog::RegisterDialog(QWidget *parent)
 			});
 			
 	// 连接获取验证码按钮
-	connect(getVerifyCodeBtn, &QtMaterialRaisedButton::clicked, this, [this, getVerifyCodeBtn, verifyCodeField]() {
+	connect(getVerifyCodeBtn, &QtMaterialRaisedButton::clicked, this, [this, getVerifyCodeBtn]() {
 		// 验证邮箱
 		QString email = emailField->text();
 		if (email.isEmpty()) {
@@ -388,6 +397,7 @@ void RegisterDialog::registerAccount()
 	QString password = passwordField->text();
 	QString confirmPassword = confirmPasswordField->text();
 	QString email = emailField->text().trimmed();
+	QString verifyCode = verifyCodeField->text().trimmed();
 	
 	// 验证输入
 	if (username.isEmpty()) {
@@ -424,12 +434,18 @@ void RegisterDialog::registerAccount()
 		return;
 	}
 	
+	// 验证码验证
+	if (verifyCode.isEmpty()) {
+		statusLabel->setText("请输入验证码");
+		return;
+	}
+	
 	// 禁用注册按钮，防止重复提交
 	registerButton->setEnabled(false);
 	statusLabel->setText("正在注册...");
 	
-	// 调用HttpMgr进行注册
-	HttpMgr::GetInstance()->registerUser(username, password, email);
+	// 调用HttpMgr进行注册，添加验证码参数
+	HttpMgr::GetInstance()->registerUser(username, password, email, verifyCode);
 }
 
 void RegisterDialog::mousePressEvent(QMouseEvent *event)

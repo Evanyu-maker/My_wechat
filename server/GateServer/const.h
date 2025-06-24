@@ -34,6 +34,8 @@ enum ErrorCodes {
 	Success = 0,
 	Error_Json = 1001,//Json解析错误
 	RPCFailed = 1002,//RPC调用失败
+	InvalidParams = 1003, // 无效参数
+	TokenInvalid = 1004, // 验证码或令牌无效
 	
 	// 数据库错误码 (2000-2999)
 	DB_ERROR_BASE = 2000,
@@ -89,4 +91,3 @@ const int DB_DEFAULT_EVICTION_INTERVAL = 30;
 const int DB_DEFAULT_MAX_WAIT_QUEUE_SIZE = 1000;
 
 class ConfigMgr;
-extern ConfigMgr gCfgMgr;

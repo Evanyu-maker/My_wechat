@@ -93,7 +93,7 @@ public:
     ManagerResult<std::vector<UserEntity>> getFriendList(int64_t userId);
     
     // 更新用户状态
-    ManagerResult<void> updateUserStatus(int64_t userId, int status);
+    ManagerResult<void> updateUserStatus(int64_t userId, const std::string& status);
     
     // 添加好友
     ManagerResult<void> addFriend(int64_t userId, int64_t friendId);

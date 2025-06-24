@@ -2,42 +2,60 @@
 #include "DBConnectionPool.h"
 #include "../const.h"
 #include <iostream>
+#include <memory>
 
 /**
- * 数据库管理器类
- * 提供数据库相关功能的初始化和管理
+ * Database Manager Class
+ * Provides initialization and management of database-related functionality
  */
 class DBManager {
 public:
     /**
-     * 初始化数据库连接池
-     * 从配置文件读取数据库配置并初始化连接池
-     * 
-     * @return 是否初始化成功
+     * Get the singleton instance
      */
-    static bool initDBConnectionPool() {
+    static DBManager& GetInstance() {
+        // Meyer's singleton - guaranteed to be thread-safe in C++11 and later
+        static DBManager instance;
+        return instance;
+    }
+    
+    /**
+     * Initialize the database connection pool
+     * Returns whether the pool was initialized successfully
+     * 
+     * @return Whether initialization was successful
+     */
+    bool initDBConnectionPool() {
+        if (m_initialized) {
+            return true; // Already initialized
+        }
+        
         try {
-            // 构建数据库配置
+            // Build database configuration
             DBPoolConfig config;
             
-            // 从配置文件读取数据库连接信息
-            config.host = gCfgMgr.getCfgVal(MYSQL_CONFIG_SECTION, MYSQL_HOST_KEY, "localhost");
-            config.user = gCfgMgr.getCfgVal(MYSQL_CONFIG_SECTION, MYSQL_USER_KEY, "root");
-            config.password = gCfgMgr.getCfgVal(MYSQL_CONFIG_SECTION, MYSQL_PASSWD_KEY, "");
-            config.database = gCfgMgr.getCfgVal(MYSQL_CONFIG_SECTION, MYSQL_SCHEMA_KEY, "my_wechat");
+            // Read database connection information from config file
+            config.host = ConfigMgr::Inst()[MYSQL_CONFIG_SECTION][MYSQL_HOST_KEY];
+            config.user = ConfigMgr::Inst()[MYSQL_CONFIG_SECTION][MYSQL_USER_KEY];
+            config.password = ConfigMgr::Inst()[MYSQL_CONFIG_SECTION][MYSQL_PASSWD_KEY];
+            config.database = ConfigMgr::Inst()[MYSQL_CONFIG_SECTION][MYSQL_SCHEMA_KEY];
             
-            // 端口转换为整数
-            std::string portStr = gCfgMgr.getCfgVal(MYSQL_CONFIG_SECTION, MYSQL_PORT_KEY, "3306");
+            // Convert port to integer
+            std::string portStr = ConfigMgr::Inst()[MYSQL_CONFIG_SECTION][MYSQL_PORT_KEY];
+            if (portStr.empty()) {
+                portStr = "3306"; // Default port
+            }
+            
             try {
                 int port = std::stoi(portStr);
-                // 将端口号添加到主机地址中
+                // Add port number to host address
                 config.host += ":" + portStr;
             } catch (const std::exception& e) {
-                std::cerr << "数据库端口配置错误: " << e.what() << std::endl;
+                std::cerr << "Database port configuration error: " << e.what() << std::endl;
                 return false;
             }
             
-            // 使用默认值初始化其他配置
+            // Initialize other configs with default values
             config.initialSize = DB_DEFAULT_INITIAL_SIZE;
             config.maxSize = DB_DEFAULT_MAX_SIZE;
             config.minSize = DB_DEFAULT_MIN_SIZE;
@@ -47,29 +65,83 @@ public:
             config.timeBetweenEvictionRuns = DB_DEFAULT_EVICTION_INTERVAL;
             config.maxWaitQueueSize = DB_DEFAULT_MAX_WAIT_QUEUE_SIZE;
             
-            // 初始化连接池
-            if (!DBConnectionPool::getInstance().init(config)) {
-                std::cerr << "初始化数据库连接池失败" << std::endl;
+            // Create and initialize connection pool
+            m_connectionPool = std::make_shared<DBConnectionPool>();
+            if (m_connectionPool && m_connectionPool->init(config)) {
+                std::cout << "Database connection pool initialized successfully" << std::endl;
+                m_initialized = true;
+                return true;
+            } else {
+                std::cerr << "Failed to initialize database connection pool" << std::endl;
                 return false;
             }
-            
-            std::cout << "数据库连接池初始化成功" << std::endl;
-            return true;
         } catch (const std::exception& e) {
-            std::cerr << "初始化数据库连接池异常: " << e.what() << std::endl;
+            std::cerr << "Database connection pool initialization exception: " << e.what() << std::endl;
             return false;
         }
     }
     
     /**
-     * 关闭数据库连接池
+     * Get a database connection
+     * @param timeoutSeconds Timeout in seconds when obtaining a connection, 0 means use default timeout
+     * @return Smart pointer to a connection wrapper
      */
-    static void shutdownDBConnectionPool() {
+    std::shared_ptr<ConnectionWrapper> getConnection(int timeoutSeconds = 0) {
+        if (!m_connectionPool || !m_initialized) {
+            throw std::runtime_error("Database connection pool not initialized");
+        }
+        return m_connectionPool->getConnection(timeoutSeconds);
+    }
+    
+    /**
+     * Shutdown the database connection pool
+     */
+    void shutdownDBConnectionPool() {
         try {
-            DBConnectionPool::getInstance().shutdown();
-            std::cout << "数据库连接池已关闭" << std::endl;
+            if (m_connectionPool) {
+                m_connectionPool->shutdown();
+                std::cout << "Database connection pool has been closed" << std::endl;
+                m_initialized = false;
+            }
         } catch (const std::exception& e) {
-            std::cerr << "关闭数据库连接池异常: " << e.what() << std::endl;
+            std::cerr << "Exception while closing database connection pool: " << e.what() << std::endl;
         }
     }
-}; 
+    
+    /**
+     * Get connection pool statistics
+     */
+    DBConnectionPool::PoolStats getPoolStats() const {
+        if (!m_connectionPool || !m_initialized) {
+            throw std::runtime_error("Database connection pool not initialized");
+        }
+        return m_connectionPool->getStats();
+    }
+    
+    /**
+     * Check if the database connection pool is initialized
+     */
+    bool isInitialized() const {
+        return m_initialized;
+    }
+    
+private:
+    // Private constructor - initialization now moved to initDBConnectionPool()
+    DBManager() : m_initialized(false) {}
+    
+    ~DBManager() {
+        shutdownDBConnectionPool();
+    }
+    
+    // Non-copyable
+    DBManager(const DBManager&) = delete;
+    DBManager& operator=(const DBManager&) = delete;
+    
+    // Database connection pool instance
+    std::shared_ptr<DBConnectionPool> m_connectionPool;
+    // Flag to track initialization status
+    bool m_initialized = false;
+};
+
+// Global DBManager instance access macro
+#define gDBManager DBManager::GetInstance() 

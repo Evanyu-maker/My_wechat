@@ -13,6 +13,7 @@
 #include <QGraphicsDropShadowEffect>
 #include <QPropertyAnimation>
 #include <QFont>
+#include "UserManager.h"
 
 LoginDialog::LoginDialog(QWidget *parent)
 	: QDialog(parent), _isMousePressed(false)
@@ -258,17 +259,32 @@ LoginDialog::LoginDialog(QWidget *parent)
 					if (error == ErrorCodes::Success) {
 						if (response.contains("userInfo")) {
 							QJsonObject userInfo = response["userInfo"].toObject();
-							// TODO: 保存用户信息到全局状态
+							
+							// 创建用户信息对象
+							UserInfo user;
+							user.userId = QString::number(userInfo["userId"].toInt());
+							user.username = userInfo["username"].toString();
+							user.nickname = userInfo["nickname"].toString();
+							user.avatar = userInfo["avatar"].toString();
+							user.isOnline = true;
+							
+							// 存储用户信息到UserManager
+							UserManager::GetInstance()->setCurrentUser(user);
 						}
 						emit loginSuccess();
 					} else {
 						QString errorMsg;
 						switch (error) {
 							case ErrorCodes::UserNotExist:
+							case static_cast<ErrorCodes>(3001):  // USER_NOT_FOUND
 								errorMsg = "用户不存在";
 								break;
 							case ErrorCodes::PasswordError:
+							case static_cast<ErrorCodes>(3003):  // USER_INVALID_PASSWORD
 								errorMsg = "密码错误";
+								break;
+							case static_cast<ErrorCodes>(3004):  // USER_LOGIN_FAILED
+								errorMsg = "登录失败";
 								break;
 							default:
 								errorMsg = "登录失败: " + QString::number(static_cast<int>(error));

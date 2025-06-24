@@ -6,23 +6,23 @@ bool DBConnectionPool::init(const DBPoolConfig& config) {
     std::lock_guard<std::mutex> lock(m_mutex);
     
     if (m_running) {
-        return false; // 已初始化
+        return false; // Already initialized
     }
     
     try {
         m_config = config;
         
-        // 获取驱动实例
+        // Get driver instance
         m_driver = get_driver_instance();
         
-        // 初始化连接池
+        // Initialize connection pool
         for (int i = 0; i < m_config.initialSize; ++i) {
             auto conn = createConnection();
             if (conn) {
                 m_idleConnections.push(conn);
                 m_allConnections.push_back(conn);
             } else {
-                // 无法创建初始连接，清理并返回失败
+                // Unable to create initial connections, clean up and return failure
                 for (auto c : m_allConnections) {
                     delete c;
                 }
@@ -34,7 +34,7 @@ bool DBConnectionPool::init(const DBPoolConfig& config) {
             }
         }
         
-        // 启动维护线程
+        // Start maintenance threads
         m_running = true;
         m_heartbeatThread = std::thread(&DBConnectionPool::heartbeatChecker, this);
         m_managerThread = std::thread(&DBConnectionPool::connectionManager, this);
@@ -54,12 +54,12 @@ ConnectionWrapper* DBConnectionPool::createConnection() {
         auto* conn = m_driver->connect(m_config.host, m_config.user, m_config.password);
         conn->setSchema(m_config.database);
         
-        // 设置连接属性
-        // 例如：conn->setClientOption("OPT_CONNECT_TIMEOUT", "10");
+        // Set connection properties
+        // For example: conn->setClientOption("OPT_CONNECT_TIMEOUT", "10");
         
         auto wrapper = new ConnectionWrapper(conn, m_nextConnectionId++);
         
-        // 执行回调
+        // Execute callback
         if (m_onConnectionCreate) {
             m_onConnectionCreate(wrapper);
         }
@@ -72,10 +72,10 @@ ConnectionWrapper* DBConnectionPool::createConnection() {
 }
 
 std::shared_ptr<ConnectionWrapper> DBConnectionPool::getConnection(int timeoutSeconds) {
-    // 增加等待线程计数
+    // Increase waiting thread count
     ++m_waitingThreads;
     
-    // 确保在函数退出时减少等待线程计数
+    // Ensure waiting thread count is decreased on function exit
     struct ScopeGuard {
         std::atomic<int>& counter;
         ScopeGuard(std::atomic<int>& c) : counter(c) {}
@@ -91,50 +91,50 @@ std::shared_ptr<ConnectionWrapper> DBConnectionPool::getConnection(int timeoutSe
             ? std::chrono::seconds(timeoutSeconds) 
             : std::chrono::seconds(m_config.connectionTimeout);
         
-        // 等待可用连接或超时
+        // Wait for available connection or timeout
         bool timeout = false;
         while (!m_running || (m_idleConnections.empty() && m_allConnections.size() >= m_config.maxSize)) {
             if (!m_running) {
-                throw std::runtime_error("连接池已关闭");
+                throw std::runtime_error("Connection pool is closed");
             }
             
             if (waitTime.count() > 0) {
-                // 等待条件变量通知或超时
+                // Wait for condition variable notification or timeout
                 if (m_condition.wait_for(lock, waitTime) == std::cv_status::timeout) {
                     timeout = true;
                     break;
                 }
             } else {
-                // 没有超时限制，一直等待
+                // No timeout limit, wait indefinitely
                 m_condition.wait(lock);
             }
         }
         
         if (timeout) {
-            throw std::runtime_error("获取连接超时");
+            throw std::runtime_error("Connection acquisition timeout");
         }
         
         if (!m_idleConnections.empty()) {
-            // 获取并移除队首连接
+            // Get and remove the front connection
             conn = m_idleConnections.front();
             m_idleConnections.pop();
             
-            // 验证连接是否有效
+            // Validate connection
             if (!validateConnection(conn)) {
                 closeConnection(conn);
                 
-                // 创建新连接
+                // Create new connection
                 conn = createConnection();
                 if (!conn) {
-                    throw std::runtime_error("无法创建数据库连接");
+                    throw std::runtime_error("Unable to create database connection");
                 }
             }
             
-            // 标记为使用中
+            // Mark as in use
             conn->setState(ConnectionState::IN_USE);
             m_activeConnections.insert(conn);
         } else if (m_allConnections.size() < m_config.maxSize) {
-            // 创建新连接
+            // Create new connection
             conn = createConnection();
             if (conn) {
                 conn->setState(ConnectionState::IN_USE);
@@ -145,15 +145,15 @@ std::shared_ptr<ConnectionWrapper> DBConnectionPool::getConnection(int timeoutSe
     }
     
     if (!conn) {
-        throw std::runtime_error("无法获取数据库连接");
+        throw std::runtime_error("Unable to acquire database connection");
     }
     
-    // 执行获取连接回调
+    // Execute connection acquisition callback
     if (m_onConnectionAcquire) {
         m_onConnectionAcquire(conn);
     }
     
-    // 使用智能指针管理连接，并设置自定义删除器
+    // Use smart pointer to manage connection with custom deleter
     return std::shared_ptr<ConnectionWrapper>(conn, [this](ConnectionWrapper* c) {
         releaseConnection(c);
     });
@@ -162,7 +162,7 @@ std::shared_ptr<ConnectionWrapper> DBConnectionPool::getConnection(int timeoutSe
 void DBConnectionPool::releaseConnection(ConnectionWrapper* conn) {
     if (!conn) return;
     
-    // 执行释放回调
+    // Execute release callback
     if (m_onConnectionRelease) {
         m_onConnectionRelease(conn);
     }
@@ -174,15 +174,15 @@ void DBConnectionPool::releaseConnection(ConnectionWrapper* conn) {
         return;
     }
     
-    // 从活动连接集合中移除
+    // Remove from active connections set
     auto it = m_activeConnections.find(conn);
     if (it != m_activeConnections.end()) {
         m_activeConnections.erase(it);
     }
     
-    // 检查连接状态
+    // Check connection state
     if (conn->getState() == ConnectionState::BROKEN) {
-        // 销毁并创建新连接
+        // Destroy and create new connection
         auto pos = std::find(m_allConnections.begin(), m_allConnections.end(), conn);
         if (pos != m_allConnections.end()) {
             *pos = createConnection();
@@ -192,12 +192,12 @@ void DBConnectionPool::releaseConnection(ConnectionWrapper* conn) {
         }
         delete conn;
     } else {
-        // 标记为空闲并归还连接池
+        // Mark as idle and return to pool
         conn->setState(ConnectionState::IDLE);
         m_idleConnections.push(conn);
     }
     
-    // 通知等待的线程
+    // Notify waiting threads
     m_condition.notify_one();
 }
 
@@ -221,10 +221,10 @@ void DBConnectionPool::shutdown() {
         m_running = false;
     }
     
-    // 通知所有等待线程
+    // Notify all waiting threads
     m_condition.notify_all();
     
-    // 等待管理线程结束
+    // Wait for management threads to end
     if (m_heartbeatThread.joinable()) {
         m_heartbeatThread.join();
     }
@@ -233,7 +233,7 @@ void DBConnectionPool::shutdown() {
         m_managerThread.join();
     }
     
-    // 清理所有连接
+    // Clean up all connections
     std::lock_guard<std::mutex> lock(m_mutex);
     for (auto conn : m_allConnections) {
         delete conn;
@@ -253,7 +253,7 @@ void DBConnectionPool::heartbeatChecker() {
         std::lock_guard<std::mutex> lock(m_mutex);
         if (!m_running) break;
         
-        // 检查空闲连接
+        // Check idle connections
         std::queue<ConnectionWrapper*> tempQueue;
         while (!m_idleConnections.empty()) {
             auto conn = m_idleConnections.front();
@@ -266,7 +266,7 @@ void DBConnectionPool::heartbeatChecker() {
             }
         }
         
-        // 恢复可用连接
+        // Restore available connections
         m_idleConnections = std::move(tempQueue);
     }
 }
@@ -280,7 +280,7 @@ void DBConnectionPool::connectionManager() {
         
         auto now = std::chrono::steady_clock::now();
         
-        // 检查空闲连接是否过期
+        // Check idle connections
         std::queue<ConnectionWrapper*> tempQueue;
         size_t idleCount = m_idleConnections.size();
         
@@ -291,7 +291,7 @@ void DBConnectionPool::connectionManager() {
             auto idleTime = std::chrono::duration_cast<std::chrono::seconds>(
                 now - conn->getLastAccessTime()).count();
             
-            // 如果空闲时间超过最大值且空闲连接数大于最小值，则关闭
+            // If idle time exceeds maximum value and idle connection count is greater than minimum value, close
             if (idleTime > m_config.maxIdleTime && idleCount > m_config.minSize) {
                 closeConnection(conn);
                 idleCount--;
@@ -300,10 +300,10 @@ void DBConnectionPool::connectionManager() {
             }
         }
         
-        // 恢复剩余连接
+        // Restore remaining connections
         m_idleConnections = std::move(tempQueue);
         
-        // 如果空闲连接少于最小值，创建新连接
+        // If idle connections are less than minimum value, create new connection
         while (m_idleConnections.size() < m_config.minSize && 
                m_allConnections.size() < m_config.maxSize) {
             auto conn = createConnection();
@@ -311,7 +311,7 @@ void DBConnectionPool::connectionManager() {
                 m_idleConnections.push(conn);
                 m_allConnections.push_back(conn);
             } else {
-                break; // 创建失败，停止尝试
+                break; // Create failed, stop trying
             }
         }
     }
@@ -320,13 +320,13 @@ void DBConnectionPool::connectionManager() {
 void DBConnectionPool::closeConnection(ConnectionWrapper* conn) {
     if (!conn) return;
     
-    // 从所有连接中移除
+    // Remove from all connections
     auto it = std::find(m_allConnections.begin(), m_allConnections.end(), conn);
     if (it != m_allConnections.end()) {
         m_allConnections.erase(it);
     }
     
-    // 从活动连接中移除
+    // Remove from active connections
     m_activeConnections.erase(conn);
     
     delete conn;

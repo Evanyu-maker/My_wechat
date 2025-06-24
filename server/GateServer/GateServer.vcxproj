@@ -109,6 +109,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>Default</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -137,7 +138,6 @@
     <ClCompile Include="ConfigMgr.cpp" />
     <ClCompile Include="CServer.cpp" />
     <ClCompile Include="db\DBConnectionPool.cpp" />
-    <ClCompile Include="db\MySQLConnectionPool.cpp" />
     <ClCompile Include="db\UserDAO.cpp" />
     <ClCompile Include="db\UserManager.cpp" />
     <ClCompile Include="GateServer.cpp" />
@@ -156,7 +156,7 @@
     <ClInclude Include="CServer.h" />
     <ClInclude Include="db\BaseDAO.h" />
     <ClInclude Include="db\DBConnectionPool.h" />
-    <ClInclude Include="db\MySQLConnectionPool.h" />
+    <ClInclude Include="db\DBManager.h" />
     <ClInclude Include="db\UserDAO.h" />
     <ClInclude Include="db\UserManager.h" />
     <ClInclude Include="HttpConnection.h" />

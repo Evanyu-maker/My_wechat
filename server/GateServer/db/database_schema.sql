@@ -4,18 +4,32 @@ CREATE DATABASE IF NOT EXISTS my_telegram DEFAULT CHARACTER SET utf8mb4 COLLATE 
 -- 使用数据库
 USE my_telegram;
 
--- 用户表
-CREATE TABLE IF NOT EXISTS users (
+-- 用户表 - 确保创建包含email字段的全新表
+DROP TABLE IF EXISTS group_members; -- 先删除有外键依赖的表
+DROP TABLE IF EXISTS friendships;
+DROP TABLE IF EXISTS private_messages;
+DROP TABLE IF EXISTS message_read_status;
+DROP TABLE IF EXISTS group_messages;
+DROP TABLE IF EXISTS friend_requests;
+DROP TABLE IF EXISTS group_invitations;
+DROP TABLE IF EXISTS files;
+DROP TABLE IF EXISTS `groups`;
+DROP TABLE IF EXISTS users;
+
+-- 创建包含email字段的用户表
+CREATE TABLE users (
     user_id INT NOT NULL AUTO_INCREMENT,
     username VARCHAR(50) NOT NULL,
     password VARCHAR(255) NOT NULL,
     nickname VARCHAR(50) NOT NULL,
     avatar VARCHAR(255) NOT NULL DEFAULT '',
+    email VARCHAR(100) NOT NULL,
     status ENUM('online', 'offline', 'away') NOT NULL DEFAULT 'offline',
     create_time DATETIME NOT NULL,
     last_login_time DATETIME NOT NULL,
     PRIMARY KEY (user_id),
-    UNIQUE KEY (username)
+    UNIQUE KEY (username),
+    UNIQUE KEY (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 好友关系表
@@ -141,6 +155,7 @@ CREATE TABLE IF NOT EXISTS files (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 存储过程：创建聊天群组
+DROP PROCEDURE IF EXISTS sp_create_group;
 DELIMITER //
 CREATE PROCEDURE sp_create_group(
     IN p_creator_id INT,

@@ -5,6 +5,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include "qtmaterialavatar.h"
+#include "ElideLabel.h"
 
 class ContactItem : public QWidget
 {
@@ -16,6 +17,6 @@ public:
 private:
     QtMaterialAvatar *avatar;
     QLabel *nameLabel;
-    QLabel *lastMessageLabel;
+    ElideLabel *lastMessageLabel;
     QLabel *timeLabel;
 }; 

@@ -22,7 +22,7 @@ public:
 	~HttpMgr();
 
 	// 用户相关请求
-	void registerUser(const QString& username, const QString& password, const QString& email);
+	void registerUser(const QString& username, const QString& password, const QString& email, const QString& verifyCode);
 	void login(const QString& username, const QString& password);
 	void getVerifyCode(const QString& email);
 	void updateUserInfo(const QString& userId, const QJsonObject& userInfo);

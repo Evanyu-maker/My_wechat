@@ -61,6 +61,12 @@
     <ClCompile Include="AppController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="UserManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ElideLabel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="LoginDialog.h">
@@ -79,6 +85,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="AppController.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="ElideLabel.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
@@ -101,6 +110,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UserManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -20,11 +20,12 @@ HttpMgr::~HttpMgr() {
 	
 }
 
-void HttpMgr::registerUser(const QString& username, const QString& password, const QString& email) {
+void HttpMgr::registerUser(const QString& username, const QString& password, const QString& email, const QString& verifyCode) {
 	QJsonObject data;
 	data["username"] = username;
 	data["password"] = password;
 	data["email"] = email;
+	data["verify_code"] = verifyCode;
 	
 	postRequest("/register", data, ReqId::Register, Modules::User);
 }
@@ -40,7 +41,7 @@ void HttpMgr::login(const QString& username, const QString& password) {
 void HttpMgr::getVerifyCode(const QString& email) {
 	QJsonObject data;
 	data["email"] = email;
-	
+
 	postRequest("/get_varifycode", data, ReqId::GetVerifyCode, Modules::User);
 }
 

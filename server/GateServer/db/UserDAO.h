@@ -10,7 +10,8 @@ struct UserEntity {
     std::string password;
     std::string nickname;
     std::string avatar;
-    int status;
+    std::string email;
+    std::string status;
     std::string createTime;
     std::string lastLoginTime;
 };
@@ -31,7 +32,7 @@ public:
     
     // 更新用户状态 (proc_update_user_status)
     // 参数: user_id, status
-    DAOResult<void> updateUserStatus(int64_t userId, int status);
+    DAOResult<void> updateUserStatus(int64_t userId, const std::string& status);
     
     // 更新最后登录时间 (proc_update_last_login_time)
     // 参数: user_id

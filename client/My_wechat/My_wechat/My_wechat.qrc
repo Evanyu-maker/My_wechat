@@ -6,5 +6,15 @@
         <file>res/Close_.png</file>
         <file>res/Restore_.png</file>
         <file>res/telegram.ico</file>
+        <file>res/emoji.png</file>
+        <file>res/chat_bg.svg</file>
+        <file>res/attach.png</file>
+        <file>res/send.png</file>
+        <file>res/add .png</file>
+        <file>res/bookmark.png</file>
+        <file>res/default-avatar.png</file>
+        <file>res/group.png</file>
+        <file>res/settings.png</file>
+        <file>res/menu.png</file>
     </qresource>
 </RCC>

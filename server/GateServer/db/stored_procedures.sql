@@ -1,18 +1,20 @@
 -- 为您的即时通讯系统创建的MySQL存储过程
+-- 统一使用utf8mb4_unicode_ci排序规则，确保字符集兼容性
 
 -- 添加用户存储过程
 DROP PROCEDURE IF EXISTS proc_add_user;
 DELIMITER $$
 CREATE PROCEDURE proc_add_user(
-    IN p_username VARCHAR(50),
-    IN p_password VARCHAR(100),
-    IN p_nickname VARCHAR(50),
-    IN p_avatar VARCHAR(200),
-    IN p_status INT
+    IN p_username VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_password VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_nickname VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_avatar VARCHAR(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_email VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_status VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 )
 BEGIN
-    INSERT INTO users (username, password, nickname, avatar, status, create_time, last_login_time)
-    VALUES (p_username, p_password, p_nickname, p_avatar, p_status, NOW(), NOW());
+    INSERT INTO users (username, password, nickname, avatar, email, status, create_time, last_login_time)
+    VALUES (p_username, p_password, p_nickname, p_avatar, p_email, p_status, NOW(), NOW());
 END$$
 DELIMITER ;
 
@@ -20,10 +22,10 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS proc_find_user_by_username;
 DELIMITER $$
 CREATE PROCEDURE proc_find_user_by_username(
-    IN p_username VARCHAR(50)
+    IN p_username VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 )
 BEGIN
-    SELECT * FROM users WHERE username = p_username;
+    SELECT * FROM users WHERE username = p_username COLLATE utf8mb4_unicode_ci;
 END$$
 DELIMITER ;
 
@@ -43,7 +45,7 @@ DROP PROCEDURE IF EXISTS proc_update_user_status;
 DELIMITER $$
 CREATE PROCEDURE proc_update_user_status(
     IN p_user_id BIGINT,
-    IN p_status INT
+    IN p_status VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 )
 BEGIN
     UPDATE users SET status = p_status WHERE user_id = p_user_id;
@@ -79,13 +81,14 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS proc_verify_password;
 DELIMITER $$
 CREATE PROCEDURE proc_verify_password(
-    IN p_username VARCHAR(50),
-    IN p_password VARCHAR(100)
+    IN p_username VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_password VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 )
 BEGIN
     SELECT COUNT(*) AS result 
     FROM users 
-    WHERE username = p_username AND password = p_password;
+    WHERE username = p_username COLLATE utf8mb4_unicode_ci 
+    AND password = p_password COLLATE utf8mb4_unicode_ci;
 END$$
 DELIMITER ;
 
@@ -150,7 +153,7 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS proc_batch_get_user_info;
 DELIMITER $$
 CREATE PROCEDURE proc_batch_get_user_info(
-    IN p_user_ids VARCHAR(1000)
+    IN p_user_ids VARCHAR(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 )
 BEGIN
     SET @sql = CONCAT('SELECT * FROM users WHERE FIND_IN_SET(user_id, "', p_user_ids, '")');
@@ -166,25 +169,26 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS sp_register_user;
 DELIMITER //
 CREATE PROCEDURE sp_register_user(
-    IN p_username VARCHAR(50),
-    IN p_password VARCHAR(255),
-    IN p_nickname VARCHAR(50),
-    IN p_avatar VARCHAR(255),
+    IN p_username VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_password VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_nickname VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_avatar VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_email VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     OUT p_user_id INT
 )
 BEGIN
     DECLARE v_user_exists INT DEFAULT 0;
     
     -- 检查用户名是否已存在
-    SELECT COUNT(*) INTO v_user_exists FROM users WHERE username = p_username;
+    SELECT COUNT(*) INTO v_user_exists FROM users WHERE username = p_username COLLATE utf8mb4_unicode_ci OR email = p_email COLLATE utf8mb4_unicode_ci;
     
     IF v_user_exists > 0 THEN
         -- 用户已存在
         SET p_user_id = -1;
     ELSE
         -- 插入新用户
-        INSERT INTO users (username, password, nickname, avatar, status, create_time, last_login_time)
-        VALUES (p_username, p_password, p_nickname, p_avatar, 'offline', NOW(), NOW());
+        INSERT INTO users (username, password, nickname, avatar, email, status, create_time, last_login_time)
+        VALUES (p_username, p_password, p_nickname, p_avatar, p_email, 'offline', NOW(), NOW());
         
         -- 获取新用户ID
         SET p_user_id = LAST_INSERT_ID();
@@ -196,24 +200,24 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS sp_login_user;
 DELIMITER //
 CREATE PROCEDURE sp_login_user(
-    IN p_username VARCHAR(50),
-    IN p_password VARCHAR(255),
+    IN p_username VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_password VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     OUT p_user_id INT
 )
 BEGIN
     DECLARE v_user_id INT;
-    DECLARE v_password VARCHAR(255);
+    DECLARE v_password VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
     
     -- 查询用户ID和密码
     SELECT user_id, password INTO v_user_id, v_password 
     FROM users 
-    WHERE username = p_username;
+    WHERE username = p_username COLLATE utf8mb4_unicode_ci;
     
     IF v_user_id IS NULL THEN
         -- 用户不存在
         SET p_user_id = -1;
     ELSE
-        IF v_password = p_password THEN
+        IF v_password = p_password COLLATE utf8mb4_unicode_ci THEN
             -- 密码正确，更新最后登录时间和状态
             UPDATE users 
             SET last_login_time = NOW(), status = 'online' 
@@ -259,8 +263,8 @@ DROP PROCEDURE IF EXISTS sp_update_user_info;
 DELIMITER //
 CREATE PROCEDURE sp_update_user_info(
     IN p_user_id INT,
-    IN p_nickname VARCHAR(50),
-    IN p_avatar VARCHAR(255)
+    IN p_nickname VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_avatar VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 )
 BEGIN
     UPDATE users
@@ -275,19 +279,19 @@ DROP PROCEDURE IF EXISTS sp_change_password;
 DELIMITER //
 CREATE PROCEDURE sp_change_password(
     IN p_user_id INT,
-    IN p_old_password VARCHAR(255),
-    IN p_new_password VARCHAR(255),
+    IN p_old_password VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_new_password VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     OUT p_result INT
 )
 BEGIN
-    DECLARE v_password VARCHAR(255);
+    DECLARE v_password VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
     
     -- 获取当前密码
     SELECT password INTO v_password
     FROM users
     WHERE user_id = p_user_id;
     
-    IF v_password = p_old_password THEN
+    IF v_password = p_old_password COLLATE utf8mb4_unicode_ci THEN
         -- 更新密码
         UPDATE users
         SET password = p_new_password
@@ -381,8 +385,8 @@ DROP PROCEDURE IF EXISTS sp_create_group;
 DELIMITER //
 CREATE PROCEDURE sp_create_group(
     IN p_creator_id INT,
-    IN p_group_name VARCHAR(50),
-    IN p_group_avatar VARCHAR(255),
+    IN p_group_name VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_group_avatar VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     OUT p_group_id INT
 )
 BEGIN
@@ -405,7 +409,7 @@ CREATE PROCEDURE sp_add_group_member(
     IN p_group_id INT,
     IN p_user_id INT,
     IN p_inviter_id INT,
-    IN p_role VARCHAR(20),
+    IN p_role VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     OUT p_result INT
 )
 BEGIN

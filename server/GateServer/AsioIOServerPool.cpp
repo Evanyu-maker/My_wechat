@@ -26,6 +26,7 @@ AsioIOServerPool::~AsioIOServerPool()
 		}
 	}
 }
+
 boost::asio::io_context& AsioIOServerPool::GetIOService() {
 	// round-robin
 	auto& service = _ioServices[_nextIOService++];

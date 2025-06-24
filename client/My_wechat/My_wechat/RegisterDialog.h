@@ -29,6 +29,7 @@ private:
 	QtMaterialTextField* passwordField;
 	QtMaterialTextField* confirmPasswordField;
 	QtMaterialTextField* emailField;
+	QtMaterialTextField* verifyCodeField;
 	QtMaterialRaisedButton* registerButton;
 	QtMaterialFlatButton* backButton;
 	QLabel* statusLabel;
